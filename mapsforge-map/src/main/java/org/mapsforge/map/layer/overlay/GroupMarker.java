@@ -127,13 +127,14 @@ public class GroupMarker extends Marker {
                     this.layers.add(marker);
                     i--;
                 }
+                return true;
             } else {
                 // remove all child layers
                 for (final ChildMarker childMarker : this.childs) {
                     this.layers.remove(childMarker);
                 }
             }
-            return true;
+            return false;
         }
         return false;
     }
