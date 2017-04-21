@@ -15,16 +15,6 @@
  */
 package org.mapsforge.map.awt.graphics;
 
-import org.mapsforge.core.graphics.Bitmap;
-import org.mapsforge.core.graphics.Canvas;
-import org.mapsforge.core.graphics.Color;
-import org.mapsforge.core.graphics.Filter;
-import org.mapsforge.core.graphics.Matrix;
-import org.mapsforge.core.graphics.Paint;
-import org.mapsforge.core.graphics.Path;
-import org.mapsforge.core.graphics.Style;
-import org.mapsforge.core.model.Dimension;
-
 import java.awt.AlphaComposite;
 import java.awt.Composite;
 import java.awt.Graphics2D;
@@ -41,6 +31,16 @@ import java.awt.image.IndexColorModel;
 import java.awt.image.LookupOp;
 import java.awt.image.ShortLookupTable;
 
+import org.mapsforge.core.graphics.Bitmap;
+import org.mapsforge.core.graphics.Canvas;
+import org.mapsforge.core.graphics.Color;
+import org.mapsforge.core.graphics.Filter;
+import org.mapsforge.core.graphics.Matrix;
+import org.mapsforge.core.graphics.Paint;
+import org.mapsforge.core.graphics.Path;
+import org.mapsforge.core.graphics.Style;
+import org.mapsforge.core.model.Dimension;
+
 class AwtCanvas implements Canvas {
     private static final String UNKNOWN_STYLE = "unknown style: ";
 
@@ -49,17 +49,17 @@ class AwtCanvas implements Canvas {
     private BufferedImageOp grayscaleOp, invertOp, invertOp4;
 
     AwtCanvas() {
-        createFilters();
+        this.createFilters();
     }
 
-    AwtCanvas(Graphics2D graphics2D) {
+    AwtCanvas(final Graphics2D graphics2D) {
         this.graphics2D = graphics2D;
-        enableAntiAliasing();
+        this.enableAntiAliasing();
 
-        createFilters();
+        this.createFilters();
     }
 
-    private BufferedImage applyFilter(BufferedImage src, Filter filter) {
+    private BufferedImage applyFilter(final BufferedImage src, final Filter filter) {
         if (filter == Filter.NONE) {
             return src;
         }
@@ -72,26 +72,27 @@ class AwtCanvas implements Canvas {
             case GRAYSCALE_INVERT:
                 dest = new BufferedImage(src.getWidth(), src.getHeight(), src.getType());
                 this.grayscaleOp.filter(src, dest);
-                dest = applyInvertFilter(dest);
+                dest = this.applyInvertFilter(dest);
                 break;
             case INVERT:
-                dest = applyInvertFilter(src);
+                dest = this.applyInvertFilter(src);
                 break;
         }
         return dest;
     }
 
-    private BufferedImage applyInvertFilter(BufferedImage src) {
+    private BufferedImage applyInvertFilter(final BufferedImage src) {
         final BufferedImage newSrc;
         if (src.getColorModel() instanceof IndexColorModel) {
-            newSrc = new BufferedImage(src.getWidth(), src.getHeight(), src.getColorModel().getNumComponents() == 3 ? BufferedImage.TYPE_INT_RGB : BufferedImage.TYPE_INT_ARGB);
-            Graphics2D g2 = newSrc.createGraphics();
+            newSrc = new BufferedImage(src.getWidth(), src.getHeight(), src.getColorModel().getNumComponents() == 3
+                    ? BufferedImage.TYPE_INT_RGB : BufferedImage.TYPE_INT_ARGB);
+            final Graphics2D g2 = newSrc.createGraphics();
             g2.drawImage(src, 0, 0, null);
             g2.dispose();
         } else {
             newSrc = src;
         }
-        BufferedImage dest = new BufferedImage(newSrc.getWidth(), newSrc.getHeight(), newSrc.getType());
+        final BufferedImage dest = new BufferedImage(newSrc.getWidth(), newSrc.getHeight(), newSrc.getType());
         switch (newSrc.getColorModel().getNumComponents()) {
             case 3:
                 this.invertOp.filter(newSrc, dest);
@@ -106,14 +107,15 @@ class AwtCanvas implements Canvas {
     private void createFilters() {
         this.grayscaleOp = new ColorConvertOp(ColorSpace.getInstance(ColorSpace.CS_GRAY), null);
 
-        short[] invert = new short[256];
-        short[] straight = new short[256];
+        final short[] invert = new short[256];
+        final short[] straight = new short[256];
         for (int i = 0; i < 256; i++) {
             invert[i] = (short) (255 - i);
             straight[i] = (short) i;
         }
         this.invertOp = new LookupOp(new ShortLookupTable(0, invert), null);
-        this.invertOp4 = new LookupOp(new ShortLookupTable(0, new short[][]{invert, invert, invert, straight}), null);
+        this.invertOp4 = new LookupOp(new ShortLookupTable(0, new short[][] { invert, invert, invert, straight }),
+                null);
     }
 
     @Override
@@ -122,37 +124,39 @@ class AwtCanvas implements Canvas {
     }
 
     @Override
-    public void drawBitmap(Bitmap bitmap, int left, int top) {
+    public void drawBitmap(final Bitmap bitmap, final int left, final int top) {
         this.graphics2D.drawImage(AwtGraphicFactory.getBufferedImage(bitmap), left, top, null);
     }
 
     @Override
-    public void drawBitmap(Bitmap bitmap, int left, int top, Filter filter) {
-        this.graphics2D.drawImage(applyFilter(AwtGraphicFactory.getBufferedImage(bitmap), filter), left, top, null);
+    public void drawBitmap(final Bitmap bitmap, final int left, final int top, final Filter filter) {
+        this.graphics2D.drawImage(this.applyFilter(AwtGraphicFactory.getBufferedImage(bitmap), filter), left, top,
+                null);
     }
 
     @Override
-    public void drawBitmap(Bitmap bitmap, Matrix matrix) {
+    public void drawBitmap(final Bitmap bitmap, final Matrix matrix) {
         this.graphics2D.drawRenderedImage(AwtGraphicFactory.getBufferedImage(bitmap),
                 AwtGraphicFactory.getAffineTransform(matrix));
     }
 
     @Override
-    public void drawBitmap(Bitmap bitmap, Matrix matrix, Filter filter) {
-        this.graphics2D.drawRenderedImage(applyFilter(AwtGraphicFactory.getBufferedImage(bitmap), filter), AwtGraphicFactory.getAffineTransform(matrix));
+    public void drawBitmap(final Bitmap bitmap, final Matrix matrix, final Filter filter) {
+        this.graphics2D.drawRenderedImage(this.applyFilter(AwtGraphicFactory.getBufferedImage(bitmap), filter),
+                AwtGraphicFactory.getAffineTransform(matrix));
     }
 
     @Override
-    public void drawCircle(int x, int y, int radius, Paint paint) {
+    public void drawCircle(final int x, final int y, final int radius, final Paint paint) {
         if (paint.isTransparent()) {
             return;
         }
 
-        AwtPaint awtPaint = AwtGraphicFactory.getPaint(paint);
-        setColorAndStroke(awtPaint);
-        int doubleRadius = radius * 2;
+        final AwtPaint awtPaint = AwtGraphicFactory.getPaint(paint);
+        this.setColorAndStroke(awtPaint);
+        final int doubleRadius = radius * 2;
 
-        Style style = awtPaint.style;
+        final Style style = awtPaint.style;
         switch (style) {
             case FILL:
                 this.graphics2D.fillOval(x - radius, y - radius, doubleRadius, doubleRadius);
@@ -163,32 +167,32 @@ class AwtCanvas implements Canvas {
                 return;
         }
 
-        throw new IllegalArgumentException(UNKNOWN_STYLE + style);
+        throw new IllegalArgumentException(AwtCanvas.UNKNOWN_STYLE + style);
     }
 
     @Override
-    public void drawLine(int x1, int y1, int x2, int y2, Paint paint) {
+    public void drawLine(final int x1, final int y1, final int x2, final int y2, final Paint paint) {
         if (paint.isTransparent()) {
             return;
         }
 
-        setColorAndStroke(AwtGraphicFactory.getPaint(paint));
+        this.setColorAndStroke(AwtGraphicFactory.getPaint(paint));
         this.graphics2D.drawLine(x1, y1, x2, y2);
     }
 
     @Override
-    public void drawPath(Path path, Paint paint) {
+    public void drawPath(final Path path, final Paint paint) {
         if (paint.isTransparent()) {
             return;
         }
 
-        AwtPaint awtPaint = AwtGraphicFactory.getPaint(paint);
-        AwtPath awtPath = AwtGraphicFactory.getPath(path);
+        final AwtPaint awtPaint = AwtGraphicFactory.getPaint(paint);
+        final AwtPath awtPath = AwtGraphicFactory.getPath(path);
 
-        setColorAndStroke(awtPaint);
+        this.setColorAndStroke(awtPaint);
         this.graphics2D.setPaint(awtPaint.texturePaint);
 
-        Style style = awtPaint.style;
+        final Style style = awtPaint.style;
         switch (style) {
             case FILL:
                 this.graphics2D.fill(awtPath.path2D);
@@ -199,11 +203,11 @@ class AwtCanvas implements Canvas {
                 return;
         }
 
-        throw new IllegalArgumentException(UNKNOWN_STYLE + style);
+        throw new IllegalArgumentException(AwtCanvas.UNKNOWN_STYLE + style);
     }
 
     @Override
-    public void drawText(String text, int x, int y, Paint paint) {
+    public void drawText(final String text, final int x, final int y, final Paint paint) {
         if (text == null || text.trim().isEmpty()) {
             return;
         }
@@ -211,23 +215,24 @@ class AwtCanvas implements Canvas {
             return;
         }
 
-        AwtPaint awtPaint = AwtGraphicFactory.getPaint(paint);
+        final AwtPaint awtPaint = AwtGraphicFactory.getPaint(paint);
 
         if (awtPaint.stroke == null) {
             this.graphics2D.setColor(awtPaint.color);
             this.graphics2D.setFont(awtPaint.font);
             this.graphics2D.drawString(text, x, y);
         } else {
-            setColorAndStroke(awtPaint);
-            TextLayout textLayout = new TextLayout(text, awtPaint.font, this.graphics2D.getFontRenderContext());
-            AffineTransform affineTransform = new AffineTransform();
+            this.setColorAndStroke(awtPaint);
+            final TextLayout textLayout = new TextLayout(text, awtPaint.font, this.graphics2D.getFontRenderContext());
+            final AffineTransform affineTransform = new AffineTransform();
             affineTransform.translate(x, y);
             this.graphics2D.draw(textLayout.getOutline(affineTransform));
         }
     }
 
     @Override
-    public void drawTextRotated(String text, int x1, int y1, int x2, int y2, Paint paint) {
+    public void drawTextRotated(final String text, final int x1, final int y1, final int x2, final int y2,
+            final Paint paint) {
         if (text == null || text.trim().isEmpty()) {
             return;
         }
@@ -235,37 +240,37 @@ class AwtCanvas implements Canvas {
             return;
         }
 
-        AffineTransform affineTransform = this.graphics2D.getTransform();
+        final AffineTransform affineTransform = this.graphics2D.getTransform();
 
-        double theta = Math.atan2(y2 - y1, x2 - x1);
+        final double theta = Math.atan2(y2 - y1, x2 - x1);
         this.graphics2D.rotate(theta, x1, y1);
 
-        double lineLength = Math.hypot(x2 - x1, y2 - y1);
-        int textWidth = paint.getTextWidth(text);
-        int dx = (int) (lineLength - textWidth) / 2;
-        int xy = paint.getTextHeight(text) / 3;
-        drawText(text, x1 + dx, y1 + xy, paint);
+        final double lineLength = Math.hypot(x2 - x1, y2 - y1);
+        final int textWidth = paint.getTextWidth(text);
+        final int dx = (int) (lineLength - textWidth) / 2;
+        final int xy = paint.getTextHeight(text) / 3;
+        this.drawText(text, x1 + dx, y1 + xy, paint);
 
         this.graphics2D.setTransform(affineTransform);
     }
 
     @Override
-    public void fillColor(Color color) {
-        fillColor(AwtGraphicFactory.getColor(color));
+    public void fillColor(final Color color) {
+        this.fillColor(AwtGraphicFactory.getColor(color));
     }
 
     @Override
-    public void fillColor(int color) {
-        fillColor(new java.awt.Color(color));
+    public void fillColor(final int color) {
+        this.fillColor(new java.awt.Color(color));
     }
 
     @Override
     public Dimension getDimension() {
-        return new Dimension(getWidth(), getHeight());
+        return new Dimension(this.getWidth(), this.getHeight());
     }
 
     Graphics2D getGraphicObject() {
-        return graphics2D;
+        return this.graphics2D;
     }
 
     @Override
@@ -284,27 +289,27 @@ class AwtCanvas implements Canvas {
     }
 
     @Override
-    public void setBitmap(Bitmap bitmap) {
+    public void setBitmap(final Bitmap bitmap) {
         if (bitmap == null) {
             this.bufferedImage = null;
             this.graphics2D = null;
         } else {
             this.bufferedImage = AwtGraphicFactory.getBufferedImage(bitmap);
             this.graphics2D = this.bufferedImage.createGraphics();
-            enableAntiAliasing();
+            this.enableAntiAliasing();
             this.graphics2D.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
             this.graphics2D.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE);
         }
     }
 
     @Override
-    public void setClip(int left, int top, int width, int height) {
+    public void setClip(final int left, final int top, final int width, final int height) {
         this.graphics2D.setClip(left, top, width, height);
     }
 
     @Override
-    public void setClipDifference(int left, int top, int width, int height) {
-        Area clip = new Area(new Rectangle2D.Double(0, 0, getWidth(), getHeight()));
+    public void setClipDifference(final int left, final int top, final int width, final int height) {
+        final Area clip = new Area(new Rectangle2D.Double(0, 0, this.getWidth(), this.getHeight()));
         clip.subtract(new Area(new Rectangle2D.Double(left, top, width, height)));
         this.graphics2D.setClip(clip);
     }
@@ -316,15 +321,15 @@ class AwtCanvas implements Canvas {
                 RenderingHints.VALUE_FRACTIONALMETRICS_ON);
     }
 
-    private void fillColor(java.awt.Color color) {
+    private void fillColor(final java.awt.Color color) {
         final Composite originalComposite = this.graphics2D.getComposite();
         this.graphics2D.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC));
         this.graphics2D.setColor(color);
-        this.graphics2D.fillRect(0, 0, getWidth(), getHeight());
+        this.graphics2D.fillRect(0, 0, this.getWidth(), this.getHeight());
         this.graphics2D.setComposite(originalComposite);
     }
 
-    public void setColorAndStroke(AwtPaint awtPaint) {
+    public void setColorAndStroke(final AwtPaint awtPaint) {
         this.graphics2D.setColor(awtPaint.color);
         if (awtPaint.stroke != null) {
             this.graphics2D.setStroke(awtPaint.stroke);

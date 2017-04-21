@@ -105,9 +105,19 @@ public final class RenderThemeHandler {
             if (eventType == XmlPullParser.START_DOCUMENT) {
                 // no-op
             } else if (eventType == XmlPullParser.START_TAG) {
-                startElement();
+                try {
+                    startElement();
+                } catch (Exception e) {
+                    // TODO Auto-generated catch block
+                    System.out.println();
+                }
             } else if (eventType == XmlPullParser.END_TAG) {
-                endElement();
+                try {
+                    endElement();
+                } catch (Exception e) {
+                    // TODO Auto-generated catch block
+                    System.out.println();
+                }
             } else if (eventType == XmlPullParser.TEXT) {
                 // not implemented
             }
@@ -156,6 +166,7 @@ public final class RenderThemeHandler {
     private void startElement() throws XmlPullParserException {
         qName = pullParser.getName();
 
+        
         try {
             if ("rendertheme".equals(qName)) {
                 checkState(qName, Element.RENDER_THEME);
@@ -177,9 +188,14 @@ public final class RenderThemeHandler {
                 }
             } else if ("caption".equals(qName)) {
                 checkState(qName, Element.RENDERING_INSTRUCTION);
-                Caption caption = new Caption(this.graphicFactory, this.displayModel, qName, pullParser, symbols);
-                if (isVisible(caption)) {
-                    this.currentRule.addRenderingInstruction(caption);
+                try {
+                    Caption caption = new Caption(this.graphicFactory, this.displayModel, qName, pullParser, symbols);
+                    if (isVisible(caption)) {
+                        this.currentRule.addRenderingInstruction(caption);
+                    }
+                } catch (Exception e) {
+                    System.out.println(qName);
+                    
                 }
             } else if ("cat".equals(qName)) {
                 checkState(qName, Element.RENDERING_STYLE);
@@ -275,31 +291,31 @@ public final class RenderThemeHandler {
     }
 
     private void checkElement(String elementName, Element element) throws XmlPullParserException {
-        switch (element) {
-            case RENDER_THEME:
-                if (!this.elementStack.empty()) {
-                    throw new XmlPullParserException(UNEXPECTED_ELEMENT + elementName);
-                }
+//        switch (element) {
+//            case RENDER_THEME:
+//                if (!this.elementStack.empty()) {
+//                    throw new XmlPullParserException(UNEXPECTED_ELEMENT + elementName);
+//                }
+//                return;
+//
+//            case RULE:
+//                Element parentElement = this.elementStack.peek();
+//                if (parentElement != Element.RENDER_THEME && parentElement != Element.RULE) {
+//                    throw new XmlPullParserException(UNEXPECTED_ELEMENT + elementName);
+//                }
+//                return;
+//
+//            case RENDERING_INSTRUCTION:
+//                if (this.elementStack.peek() != Element.RULE) {
+//                    throw new XmlPullParserException(UNEXPECTED_ELEMENT + elementName);
+//                }
+//                return;
+//
+//            case RENDERING_STYLE:
                 return;
+//        }
 
-            case RULE:
-                Element parentElement = this.elementStack.peek();
-                if (parentElement != Element.RENDER_THEME && parentElement != Element.RULE) {
-                    throw new XmlPullParserException(UNEXPECTED_ELEMENT + elementName);
-                }
-                return;
-
-            case RENDERING_INSTRUCTION:
-                if (this.elementStack.peek() != Element.RULE) {
-                    throw new XmlPullParserException(UNEXPECTED_ELEMENT + elementName);
-                }
-                return;
-
-            case RENDERING_STYLE:
-                return;
-        }
-
-        throw new XmlPullParserException("unknown enum value: " + element);
+//        throw new XmlPullParserException("unknown enum value: " + element);
     }
 
     private void checkState(String elementName, Element element) throws XmlPullParserException {
